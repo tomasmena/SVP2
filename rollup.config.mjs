@@ -4,7 +4,7 @@ export default {
     input : 'index.js',
     output: [
         {
-            format: 'cjs',
+            format: 'es',
             file: 'bundle.js',
 
         }

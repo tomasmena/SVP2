@@ -1,5 +1,6 @@
 import {menu} from "./menu.js";
 import { threeMesh } from "./three.js";
+import { customMesh } from "./three.js";
 // Main structure
 const container = document.querySelector(".main-container")
 const header= document.createElement("div");
@@ -39,7 +40,8 @@ const canvas= document.createElement("canvas");
 canvas.id="three-canvas";
 const gui = document.createElement('div');
 gui.id = "three-gui";
-threeMesh(canvas,gui);
+//threeMesh(canvas,gui);
+customMesh(canvas,gui)
 //  Spaces titles   
 
 const rightbarTitle=document.createElement("h3")
