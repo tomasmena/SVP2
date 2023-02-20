@@ -13,9 +13,7 @@ h1 {
     margin: 0.5rem;
     
 }
-div {
-    display: flex;
-}
+
 
 .purple {
     background-color: purple;
@@ -69,12 +67,13 @@ h3  {
     width: 70%;
     border-right: 2px solid gray;
     background-color: none;
-    height: 800px;
+    height: 100%;
+    display: flex;
 }
 
 #three-canvas{
     width: 100%;
-    height: 100%;
+    height: 800px;
     position :relative;
     
 }
@@ -82,12 +81,13 @@ h3  {
 #three-gui{
     position: absolute;
     right: 0;
-    width: 70%;
+    width: 50%;
 }
 
 .rightbar {
     flex-direction: column;
     background-color: aqua;
     width: 30%;
-    height: 100%;
+    
+    /*height: 100%;*/
 }

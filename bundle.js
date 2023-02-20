@@ -29339,6 +29339,137 @@ class LineSegments extends Line {
 
 }
 
+class WireframeGeometry extends BufferGeometry {
+
+	constructor( geometry = null ) {
+
+		super();
+
+		this.type = 'WireframeGeometry';
+
+		this.parameters = {
+			geometry: geometry
+		};
+
+		if ( geometry !== null ) {
+
+			// buffer
+
+			const vertices = [];
+			const edges = new Set();
+
+			// helper variables
+
+			const start = new Vector3();
+			const end = new Vector3();
+
+			if ( geometry.index !== null ) {
+
+				// indexed BufferGeometry
+
+				const position = geometry.attributes.position;
+				const indices = geometry.index;
+				let groups = geometry.groups;
+
+				if ( groups.length === 0 ) {
+
+					groups = [ { start: 0, count: indices.count, materialIndex: 0 } ];
+
+				}
+
+				// create a data structure that contains all edges without duplicates
+
+				for ( let o = 0, ol = groups.length; o < ol; ++ o ) {
+
+					const group = groups[ o ];
+
+					const groupStart = group.start;
+					const groupCount = group.count;
+
+					for ( let i = groupStart, l = ( groupStart + groupCount ); i < l; i += 3 ) {
+
+						for ( let j = 0; j < 3; j ++ ) {
+
+							const index1 = indices.getX( i + j );
+							const index2 = indices.getX( i + ( j + 1 ) % 3 );
+
+							start.fromBufferAttribute( position, index1 );
+							end.fromBufferAttribute( position, index2 );
+
+							if ( isUniqueEdge( start, end, edges ) === true ) {
+
+								vertices.push( start.x, start.y, start.z );
+								vertices.push( end.x, end.y, end.z );
+
+							}
+
+						}
+
+					}
+
+				}
+
+			} else {
+
+				// non-indexed BufferGeometry
+
+				const position = geometry.attributes.position;
+
+				for ( let i = 0, l = ( position.count / 3 ); i < l; i ++ ) {
+
+					for ( let j = 0; j < 3; j ++ ) {
+
+						// three edges per triangle, an edge is represented as (index1, index2)
+						// e.g. the first triangle has the following edges: (0,1),(1,2),(2,0)
+
+						const index1 = 3 * i + j;
+						const index2 = 3 * i + ( ( j + 1 ) % 3 );
+
+						start.fromBufferAttribute( position, index1 );
+						end.fromBufferAttribute( position, index2 );
+
+						if ( isUniqueEdge( start, end, edges ) === true ) {
+
+							vertices.push( start.x, start.y, start.z );
+							vertices.push( end.x, end.y, end.z );
+
+						}
+
+					}
+
+				}
+
+			}
+
+			// build geometry
+
+			this.setAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
+
+		}
+
+	}
+
+}
+
+function isUniqueEdge( start, end, edges ) {
+
+	const hash1 = `${start.x},${start.y},${start.z}-${end.x},${end.y},${end.z}`;
+	const hash2 = `${end.x},${end.y},${end.z}-${start.x},${start.y},${start.z}`; // coincident edge
+
+	if ( edges.has( hash1 ) === true || edges.has( hash2 ) === true ) {
+
+		return false;
+
+	} else {
+
+		edges.add( hash1 );
+		edges.add( hash2 );
+		return true;
+
+	}
+
+}
+
 class MeshPhongMaterial extends Material {
 
 	constructor( parameters ) {
@@ -32466,23 +32597,35 @@ function customMesh(canvas,guiCont){
     panelsr.vertex;
     const coords=[];
     const coords2=[];
+    new LineBasicMaterial({
+        color:0x0000ff
+    });
     //console.log(panels2)
     for(const l in panels2['L_1']){
-        
         coords.push(panels2['L_1'][l]);
     
         
     }
-    
+    //debugger;
     for(let a in coords){
-        //console.log(coords[a])
+        
+        // const x=coords[a][0];
+        // const y=coords[a][1];
+        // const z=coords[a][2];
+        // const arrayT = [].concat(...x,y,z).map(value => value * 0.001);
+        
+        // const verticesT= new Float32Array(arrayT);
+        // const triangle = new BufferGeometry().setFromPoints(verticesT);
+        // triangle.setAttribute('position', new BufferAttribute(verticesT,3));
+        // const wireTriangle = new WireframeGeometry(triangle);
+        // const wireframet= new LineSegments(wireTriangle,edgesMaterialT)
+        // scene.add(wireframet)
+
         for(let v of coords[a]){
             coords2.push(v);
-
         }
-    }
-
-
+    } 
+    
     // for(let v in panelsr.vertex){
     //     const coord= panelsr.vertex[v];
         
@@ -32491,26 +32634,21 @@ function customMesh(canvas,guiCont){
     // }
     
     const flatcoord=[].concat(...coords2);
-    console.log(flatcoord);
+    
     const flatcoordsc = [];
 
     for(let v of flatcoord){
-        const sclcrd=(v*0.001);
+        const sclcrd=(v*0.0001);
         flatcoordsc.push(sclcrd);
     }
     const vertices= new Float32Array(flatcoordsc);
     
+    const geometry2 = new BufferGeometry().setFromPoints(vertices);
+    geometry2.setAttribute('position',new BufferAttribute(vertices,3));
     
-    console.log(vertices);
-    new Uint32Array(panelsr.face); 
-   
-    const geometry = new BufferGeometry();
-
-    geometry.setAttribute('position',new BufferAttribute(vertices,3));
-
-    // geometry.setIndex(new BufferAttribute(indices,1));
     
-    console.log(geometry);
+    
+    console.log(geometry2);
 
     // helpers
     const axes = new AxesHelper(1);
@@ -32520,7 +32658,6 @@ function customMesh(canvas,guiCont){
     grid.renderOrder = 0;
     scene.add(axes);
     
-
     // the material
 
     const material= new MeshBasicMaterial({
@@ -32536,19 +32673,17 @@ function customMesh(canvas,guiCont){
         flatShading: false
     });
 
-    const edgesMaterial= new LineBasicMaterial({color:0x000000});
-    const wireframe = new LineSegments(geometry,edgesMaterial);
-    const mesh= new Mesh(geometry,material);
-    // const sphere= new Mesh(geometry2,materialSphere)
+    const edgesMaterial= new LineBasicMaterial({
+        color:0x000000
+    });
+    edgesMaterial.linewidth = 3.0;
+    const wireTriangle = new WireframeGeometry(geometry2);
+    const wireframe= new LineSegments(wireTriangle,edgesMaterial);
+    const meshT= new Mesh(geometry2,material);
 
-    // adding objects to the scene
-
-    // sphere.position.x +=1.5;
-    // mesh.position.x += 1;
-    // mesh.position.y += 0.5;
-    scene.add(mesh);
-    console.log(mesh.material);
-    mesh.add(wireframe);
+    scene.add(meshT);
+    scene.add(wireframe);
+    
     
     // controls
 
@@ -32564,13 +32699,13 @@ function customMesh(canvas,guiCont){
         color : 0xff0000,
     };
     
-    gui.add(mesh.position,'x',min,max,step); 
+    gui.add(meshT.position,'x',min,max,step); 
     // gui.add(mesh.position,'x').min(min).max(max).step(step).name('X-axis');
     
 
     gui.addColor(colorParam,'color').onChange(()=>{
-        mesh.material.color.set(colorParam.color);
-        console.log(colorParam.color);
+        meshT.material.color.set(colorParam.color);
+        
     });
 
     
@@ -32596,7 +32731,7 @@ function customMesh(canvas,guiCont){
     camera.position.z = 3;
     camera.position.y = 3;
     camera.position.x = 3;
-    camera.lookAt(mesh.position);
+    camera.lookAt(meshT.position);
     scene.add(camera);
 
     // window.addEventListener('mousemove', (event)=>{
@@ -32629,11 +32764,8 @@ function customMesh(canvas,guiCont){
     
     const renderer = new WebGLRenderer( { canvas } );
     renderer.setSize(canvas.clientWidth , canvas.clientHeight, false);
-    
     renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
     renderer.setClearColor(0xffffff,1);
-    console.log(Math.min(window.devicePixelRatio,2));
-    
     //renderer.render(scene,camera);
 
 
