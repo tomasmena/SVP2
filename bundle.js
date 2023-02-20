@@ -32592,7 +32592,7 @@ function customMesh(canvas,guiCont){
     const scene= new Scene();
     scene.background= null;
 
-        // the object
+    //  CUSTOM the object
     const panels2=panelsr;
     panelsr.vertex;
     const coords=[];
@@ -32600,38 +32600,16 @@ function customMesh(canvas,guiCont){
     new LineBasicMaterial({
         color:0x0000ff
     });
-    //console.log(panels2)
-    for(const l in panels2['L_1']){
-        coords.push(panels2['L_1'][l]);
+    for(const l in panels2['L_2']){
+        coords.push(panels2['L_2'][l]);
     
-        
     }
-    //debugger;
     for(let a in coords){
         
-        // const x=coords[a][0];
-        // const y=coords[a][1];
-        // const z=coords[a][2];
-        // const arrayT = [].concat(...x,y,z).map(value => value * 0.001);
-        
-        // const verticesT= new Float32Array(arrayT);
-        // const triangle = new BufferGeometry().setFromPoints(verticesT);
-        // triangle.setAttribute('position', new BufferAttribute(verticesT,3));
-        // const wireTriangle = new WireframeGeometry(triangle);
-        // const wireframet= new LineSegments(wireTriangle,edgesMaterialT)
-        // scene.add(wireframet)
-
         for(let v of coords[a]){
             coords2.push(v);
         }
     } 
-    
-    // for(let v in panelsr.vertex){
-    //     const coord= panelsr.vertex[v];
-        
-    //     coords.push(coord.x*.001,coord.z*.001,coord.y*.001)
-    //     coords2.push('x','y','z')
-    // }
     
     const flatcoord=[].concat(...coords2);
     
@@ -32668,22 +32646,22 @@ function customMesh(canvas,guiCont){
         side:2
     });
     new MeshPhongMaterial({
-        color: 0xff00ff,
+        color: 0x5f92b9,
         shininess: 100 ,
-        flatShading: false
+        flatShading: false,
+        side:2
     });
 
     const edgesMaterial= new LineBasicMaterial({
         color:0x000000
     });
-    edgesMaterial.linewidth = 3.0;
+    edgesMaterial.linewidth = 2;
     const wireTriangle = new WireframeGeometry(geometry2);
     const wireframe= new LineSegments(wireTriangle,edgesMaterial);
     const meshT= new Mesh(geometry2,material);
 
     scene.add(meshT);
-    scene.add(wireframe);
-    
+    meshT.add(wireframe);
     
     // controls
 
@@ -32700,18 +32678,11 @@ function customMesh(canvas,guiCont){
     };
     
     gui.add(meshT.position,'x',min,max,step); 
-    // gui.add(mesh.position,'x').min(min).max(max).step(step).name('X-axis');
-    
-
+    console.log(meshT.material);
     gui.addColor(colorParam,'color').onChange(()=>{
         meshT.material.color.set(colorParam.color);
         
     });
-
-    
-    
-    //scene.add(sphere);
-
     
     // lights
 
@@ -32734,73 +32705,58 @@ function customMesh(canvas,guiCont){
     camera.lookAt(meshT.position);
     scene.add(camera);
 
-    // window.addEventListener('mousemove', (event)=>{
-        
-    //     const position = getMousePosition(event);
-    //     camera.position.x = Math.sin(position.x *Math.PI * 2)*2;
-    //     camera.position.z = Math.cos(position.x * Math.PI * 2)*2;
-    //     camera.position.y = position.y * 3;
-        
-    //     camera.lookAt(mesh.position);
-    // })
-    
-
-    // function getMousePosition(event) {
-    //     const position= new Vector2();
-    //     const bounds= canvas.getBoundingClientRect();
-    //     position.x=(event.clientX - bounds.left) / (bounds.right - bounds.left) * 2 - 1;
-    //     position.y=-(event.clientY - bounds.top) / (bounds.bottom - bounds.top) * 2 + 1;
-    //     return position;
-
-    // }
-
     // GUI
-
-    
-    
-
 
     //the renderer
     
-    const renderer = new WebGLRenderer( { canvas } );
+    const renderer = new WebGLRenderer( { canvas : canvas } );
+    
     renderer.setSize(canvas.clientWidth , canvas.clientHeight, false);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
     renderer.setClearColor(0xffffff,1);
     //renderer.render(scene,camera);
+    
+    //controls
+    
+    const clock = new Clock();
+    const cameraControls = new CameraControls(camera,canvas);
+    
+    cameraControls.dollyToCursor=true;
+
+    
+    
+    //animtation
+    const  animate = () => {
+        const detla = clock.getDelta();
+        cameraControls.update(detla);
+        renderer.render(scene,camera);
+        requestAnimationFrame(animate);
+    };
+    
+    window.addEventListener('load',()=> {
+        animate();
+    });
+    animate();
 
 
     window.addEventListener('resize',()=> {
-       
         camera.aspect = canvas.clientWidth / canvas.clientHeight ;
         camera.updateProjectionMatrix();
         renderer.setSize(canvas.clientWidth , canvas.clientHeight, false);
+        
     });
-
-    //controls
     
     
-    const clock = new Clock();
-    const cameraControls = new CameraControls(camera, canvas);
-    cameraControls.dollyToCursor=true;
-    // controls.enableDamping = true ;
-
-
-    // animtation
-    
-    function animate() {
-        const detla = clock.getDelta();
-        cameraControls.update(detla);
-        // mesh.rotation.x += 0.01;
-        // mesh.rotation.z += 0.01;
-        renderer.render(scene,camera);
-        requestAnimationFrame(animate);
-    }
-
-    animate();
-
+   
 }
 
 // Main structure
+
+const win = window;
+window.addEventListener('load', () =>{
+    console.log("loaded");
+});
+console.log(win);
 const container = document.querySelector(".main-container");
 const header= document.createElement("div");
 header.className = "header";
@@ -32837,8 +32793,11 @@ const canvas= document.createElement("canvas");
 canvas.id="three-canvas";
 const gui = document.createElement('div');
 gui.id = "three-gui";
-//threeMesh(canvas,gui);
 customMesh(canvas,gui);
+console.log(canvas);
+
+
+
 //  Spaces titles   
 
 const rightbarTitle=document.createElement("h3");
