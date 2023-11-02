@@ -75,7 +75,8 @@ map.on('load',()=>{
         map.addSource(
             `${lineSrcName}`,{
                 type:'geojson',
-                data:line
+                data:line,
+                
                 }
             );
         map.addLayer({
@@ -85,7 +86,7 @@ map.on('load',()=>{
             'layout': {},
             'paint': {
             'line-color': '#E1FF05', // blue color fill
-            'line-width': 3,
+            'line-width': 4,
             'line-dasharray':[1,2]},
                 
         });
